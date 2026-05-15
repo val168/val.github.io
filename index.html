@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAL - Terminal Portfolio</title>
+    <style>
+        :root {
+            --bg-color: #000000;       
+            --primary-color: #7aa2f7;  /* Modern Blue */
+            --accent-color: #bb9af7;   /* Soft Purple */
+            --text-main: #c0caf5;      /* Off-white */
+            --text-dim: #565f89;       /* Dimmed text */
+            --green: #9ece6a;
+            
+            --font-stack: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* --- VIDEO BACKGROUND --- */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -100;
+            object-fit: contain; 
+            
+            /* ADJUSTMENT: Brightness set to 0.75 (75%) */
+            filter: brightness(0.75); 
+        }
+
+        /* --- TOP BAR CONTAINER --- */
+        .top-ui-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 40px;
+            width: 100%;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* --- LEFT SIDE: NAMEPLATE --- */
+        .nameplate-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .hero-name {
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 10px;
+            color: var(--text-main);
+            text-shadow: 0 4px 10px rgba(0,0,0,0.9), 0 0 20px rgba(122, 162, 247, 0.4); /* Stronger shadow for fusion */
+            margin: 0;
+            line-height: 1;
+        }
+
+        .hero-sub {
+            margin-top: 10px;
+            color: var(--text-dim);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9); /* Stronger shadow */
+        }
+
+        /* --- RIGHT SIDE: TIME WIDGET --- */
+        .time-widget {
+            display: flex;
+            gap: 40px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            
+            /* FUSED LOOK: Semi-transparent, no solid borders */
+            background: rgba(0, 0, 0, 0.2); 
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05); /* Very subtle border */
+            backdrop-filter: blur(2px); /* Slight blur just for readability */
+            margin: 0;
+        }
+
+        .time-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .time-val {
+            color: var(--primary-color);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,0,0,1);
+        }
+
+        .time-note {
+            font-size: 0.7rem;
+            color: var(--accent-color);
+            margin-top: 5px;
+            font-style: italic;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+
+        /* --- TERMINAL SECTION --- */
+        .terminal-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px 60px 40px;
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            margin-left: auto; 
+            margin-right: 40px;
+            margin-top: 20px; 
+        }
+
+        .terminal-window {
+            flex: 1;
+            overflow-y: auto;
+            
+            /* FUSED LOOK: Removed background, borders, shadows, and blur */
+            background: transparent; 
+            backdrop-filter: none;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            
+            padding: 20px; 
+            
+            /* Custom Scrollbar (Made more subtle) */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(122, 162, 247, 0.3) transparent;
+        }
+
+        .terminal-window::-webkit-scrollbar {
+            width: 4px;
+        }
+        .terminal-window::-webkit-scrollbar-thumb {
+            background-color: rgba(122, 162, 247, 0.3); /* Faint scrollbar */
+            border-radius: 2px;
+        }
+        .terminal-window::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .output-line {
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            /* Stronger text shadow for readability over video */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+
+        .command-echo {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        /* Input Area */
+        .input-line {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding: 0; 
+        }
+
+        .prompt {
+            color: var(--accent-color);
+            margin-right: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+
+        #command-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            font-size: 1rem;
+            flex: 1;
+            outline: none;
+            caret-color: var(--primary-color);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+
+        /* Footer Hints */
+        .footer-hints {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            padding: 10px 20px;
+            
+            /* FUSED LOOK: Removed background and border */
+            background: transparent;
+            border: none;
+            border-top: none;
+            
+            margin-top: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+
+        .footer-hints span {
+            color: var(--primary-color);
+        }
+
+        /* Utility */
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--primary-color);
+        }
+        a:hover {
+            color: var(--text-main);
+            border-bottom-style: solid;
+        }
+
+        .key {
+            color: var(--primary-color);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+            50% { opacity: 0.5; box-shadow: 0 0 2px var(--green); }
+            100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .top-ui-bar {
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .hero-name { font-size: 2.5rem; letter-spacing: 5px; }
+            
+            .time-widget { 
+                width: 100%; 
+                flex-direction: column; 
+                gap: 10px;
+                text-align: center; 
+            }
+            
+            .terminal-container { 
+                margin-left: auto; 
+                margin-right: auto; 
+                width: 100%;
+                padding: 0 20px 40px 20px; 
+            }
+            .input-line { flex-wrap: wrap; }
+            .prompt { width: 100%; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. VIDEO BACKGROUND -->
+    <video autoplay muted loop id="bg-video">
+        <source src="background.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- 2. TOP UI BAR (Nameplate Left, Time Right) -->
+    <div class="top-ui-bar">
+        
+        <!-- LEFT: Nameplate -->
+        <div class="nameplate-container">
+            <h1 class="hero-name">VAL</h1>
+            <p class="hero-sub">type help to know more</p>
+        </div>
+
+        <!-- RIGHT: Time Widget -->
+        <div class="time-widget">
+            <div class="time-block">
+                <span class="time-label">Local Time</span>
+                <span class="time-val" id="local-time">00:00:00</span>
+            </div>
+            <div class="time-block">
+                <span class="time-label">Val's Local Time (France)</span>
+                <span class="time-val" id="france-time">00:00:00</span>
+                <span class="time-note">France has the same time as you</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. TERMINAL (Interactive) - FUSED WITH BACKGROUND -->
+    <main class="terminal-container">
+        <div class="terminal-window" id="terminal-window" onclick="focusInput()">
+            <div id="output-history">
+                <div class="output-line">Welcome to val's portfolio terminal.</div>
+                <div class="output-line">Type help to know more.</div>
+            </div>
+
+            <div class="input-line">
+                <span class="prompt">val@portfolio:~$</span>
+                <input type="text" id="command-input" autocomplete="off" spellcheck="false" autofocus>
+            </div>
+        </div>
+
+        <div class="footer-hints">
+            try: <span>help</span>, <span>about</span>, <span>skills</span>, <span>projects</span>, <span>contact</span>, <span>socials</span>, <span>now</span>
+        </div>
+    </main>
+
+    <script>
+        // --- CLOCK LOGIC ---
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            
+            document.getElementById('local-time').textContent = timeString;
+            document.getElementById('france-time').textContent = timeString; 
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // --- TERMINAL LOGIC ---
+        const fileSystem = {
+            'help': {
+                type: 'text',
+                content: `
+<span style="color:var(--primary-color)">AVAILABLE COMMANDS:</span>
+  <span class="key">about</span>      Information about me
+  <span class="key">skills</span>     Technical stack
+  <span class="key">projects</span>   Featured works
+  <span class="key">contact</span>    Contact details
+  <span class="key">socials</span>    Social media links
+  <span class="key">now</span>        What am I doing now?
+  <span class="key">clear</span>      Clear the terminal
+                `
+            },
+            'about': {
+                type: 'text',
+                content: `
+<span style="color:var(--accent-color)">WHO IS VAL?</span>
+-----------------
+I am a Full Stack Developer passionate about creating clean, efficient, 
+and user-centric web applications. I focus on modern frontend technologies 
+and robust backend systems.
+                `
+            },
+            'skills': {
+                type: 'text',
+                content: `
+<span style="color:var(--primary-color)">TECHNICAL SKILLS</span>
+------------------
+  Frontend:  React, Vue, TypeScript, Tailwind CSS
+  Backend:   Node.js, Express, Python, Django
+  Database:  PostgreSQL, MongoDB, Redis
+  DevOps:    Docker, Git, AWS, Linux
+                `
+            },
+            'projects': {
+                type: 'text',
+                content: `
+<span style="color:var(--accent-color)">PROJECTS</span>
+----------
+  1. <a href="#">Project Alpha</a> - A dashboard for analytics.
+  2. <a href="#">Project Beta</a> - Real-time chat application.
+  3. <a href="#">Project Gamma</a> - E-commerce platform.
+                `
+            },
+            'contact': {
+                type: 'text',
+                content: `
+<span style="color:var(--primary-color)">CONTACT ME</span>
+------------
+  Email:    <a href="mailto:hello@val.dev">hello@val.dev</a>
+  Location: France
+                `
+            },
+            'socials': {
+                type: 'text',
+                content: `
+<span style="color:var(--primary-color)">SOCIAL NETWORKS</span>
+----------------
+  GitHub:   <a href="#">github.com/val</a>
+  Twitter:  <a href="#">twitter.com/val</a>
+  LinkedIn: <a href="#">linkedin.com/in/val</a>
+                `
+            },
+            'now': {
+                type: 'text',
+                content: `
+<span style="color:var(--primary-color)">WHAT AM I DOING NOW?</span>
+-----------------------
+  Currently working on improving my system architecture skills 
+  and contributing to open source projects.
+  Available for freelance work.
+                `
+            }
+        };
+
+        const outputDiv = document.getElementById('output-history');
+        const inputField = document.getElementById('command-input');
+        const terminalWindow = document.getElementById('terminal-window');
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        function focusInput() {
+            inputField.focus();
+        }
+
+        inputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const rawInput = inputField.value.trim();
+                
+                const echoDiv = document.createElement('div');
+                echoDiv.className = 'output-line command-echo';
+                echoDiv.innerHTML = `<span class="prompt">val@portfolio:~$</span> ${rawInput}`;
+                outputDiv.appendChild(echoDiv);
+
+                if (rawInput) {
+                    commandHistory.push(rawInput);
+                    historyIndex = commandHistory.length;
+                    processCommand(rawInput);
+                }
+
+                inputField.value = '';
+                scrollToBottom();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    inputField.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    inputField.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = commandHistory.length;
+                    inputField.value = '';
+                }
+            }
+        });
+
+        function processCommand(input) {
+            const cmd = input.toLowerCase().split(' ')[0];
+
+            if (cmd === 'clear') {
+                outputDiv.innerHTML = '';
+                return;
+            }
+
+            if (fileSystem[cmd]) {
+                const data = fileSystem[cmd];
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'output-line';
+                responseDiv.innerHTML = data.content;
+                outputDiv.appendChild(responseDiv);
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'output-line';
+                errorDiv.style.color = '#f7768e'; 
+                errorDiv.textContent = `command not found: ${cmd}`;
+                outputDiv.appendChild(errorDiv);
+            }
+        }
+
+        function scrollToBottom() {
+            terminalWindow.scrollTop = terminalWindow.scrollHeight;
+        }
+    </script>
+</body>
+</html>
